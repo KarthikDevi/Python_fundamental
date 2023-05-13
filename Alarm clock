@@ -1,0 +1,33 @@
+import time
+from gps import gps # use a GPS library such as https://github.com/foosel/gps
+
+# set the destination location coordinates (latitude and longitude)
+dest_lat = 12.9234
+dest_lon = 80.1207
+
+# define the alarm time (15 minutes before arrival at destination)
+alarm_time = time.time() + 900
+
+# create a GPS object
+gpsd = gps(mode=gps.WATCH_ENABLE)
+
+# loop until we reach the destination or the alarm goes off
+while True:
+    # get the current location
+    report = gpsd.next()
+    if report['class'] == 'TPV':
+        lat = getattr(report, 'lat', 0.0)
+        lon = getattr(report, 'lon', 0.0)
+        
+        # check if we have arrived at the destination
+        if abs(lat - dest_lat) < 0.0005 and abs(lon - dest_lon) < 0.0005:
+            print("You have arrived at your destination!")
+            break
+        
+        # check if it's time to sound the alarm
+        if time.time() >= alarm_time:
+            print("Time to wake up!")
+            break
+        
+    time.sleep(1) # wait 1 second before checking again
+
